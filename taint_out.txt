@@ -1,0 +1,269 @@
+---------------------vf----------------------------
+Running orig pocr taint analysis on xz.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
+#Edges              41616
+#Nodes              31267
+VmrssInGB           1.09383
+AnalysisTime        798.859
+#CountEdges         31990446
+#Checks             2553012649
+#SumEdges           44268916
+
+Running new ucfl + pocr taint analysis on xz.g
+#Symbol = 8
+:8, a:7, CA_i:6, ret_i:5, A:4, call_i:3, P:2, S:1, 
+Insert:
+, P, S, A, 
+Follow:
+, CA_i, 
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 12
+
+#Edges              41616
+#Nodes              31267
+VmrssInGB           0.787411
+AnalysisTime        165.329
+#CountEdges         31990446
+#Checks             381045603
+#SumEdges           38251030
+
+Running orig focr taint analysis analysis on xz.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
+#Edges              41616
+#Nodes              31267
+VmrssInGB           0.877682
+AnalysisTime        835.588
+#CountEdges         31990446
+#Checks             2553452548
+#SumEdges           44268916
+
+Running new ucfl + focr taint analysis on xz.g
+#Symbol = 8
+:8, a:7, CA_i:6, ret_i:5, A:4, call_i:3, P:2, S:1, 
+Insert:
+, P, S, A, 
+Follow:
+, CA_i, 
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 12
+
+#Edges              41616
+#Nodes              31267
+VmrssInGB           0.54768
+AnalysisTime        168.146
+#CountEdges         31990446
+#Checks             386603098
+#SumEdges           38251030
+
+---------------------vf----------------------------
+Running orig pocr taint analysis on nab.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
+#Edges              41617
+#Nodes              32037
+VmrssInGB           2.24795
+AnalysisTime        214.5
+#CountEdges         13511995
+#Checks             3647639090
+#SumEdges           26046016
+
+Running new ucfl + pocr taint analysis on nab.g
+#Symbol = 8
+:8, a:7, CA_i:6, ret_i:5, A:4, call_i:3, P:2, S:1, 
+Insert:
+, P, S, A, 
+Follow:
+, CA_i, 
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 12
+
+#Edges              41617
+#Nodes              32037
+VmrssInGB           2.04313
+AnalysisTime        135.761
+#CountEdges         13511995
+#Checks             2647453273
+#SumEdges           21463507
+
+Running orig focr taint analysis analysis on nab.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
+#Edges              41617
+#Nodes              32037
+VmrssInGB           0.863068
+AnalysisTime        162.669
+#CountEdges         13511995
+#Checks             3645508486
+#SumEdges           26046016
+
+Running new ucfl + focr taint analysis on nab.g
+#Symbol = 8
+:8, a:7, CA_i:6, ret_i:5, A:4, call_i:3, P:2, S:1, 
+Insert:
+, P, S, A, 
+Follow:
+, CA_i, 
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 12
+
+#Edges              41617
+#Nodes              32037
+VmrssInGB           0.65678
+AnalysisTime        107.542
+#CountEdges         13511995
+#Checks             2647538871
+#SumEdges           21463507
+
+---------------------vf----------------------------
+Running orig pocr taint analysis on leela.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
+#Edges              70610
+#Nodes              48138
+VmrssInGB           3.71753
+AnalysisTime        9191.3
+#CountEdges         162671846
+#Checks             1746386933
+#SumEdges           212176889
+
+Running new ucfl + pocr taint analysis on leela.g
+#Symbol = 8
+:8, a:7, CA_i:6, ret_i:5, A:4, call_i:3, P:2, S:1, 
+Insert:
+, P, S, A, 
+Follow:
+, CA_i, 
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 12
+
+#Edges              70610
+#Nodes              48138
+VmrssInGB           2.56046
+AnalysisTime        2352.37
+#CountEdges         162671846
+#Checks             2145709686
+#SumEdges           185936179
+
+Running orig focr taint analysis analysis on leela.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
+#Edges              70610
+#Nodes              48138
+VmrssInGB           3.07172
+AnalysisTime        9562.33
+#CountEdges         162671846
+#Checks             1733612367
+#SumEdges           212176889
+
+Running new ucfl + focr taint analysis on leela.g
+#Symbol = 8
+:8, a:7, CA_i:6, ret_i:5, A:4, call_i:3, P:2, S:1, 
+Insert:
+, P, S, A, 
+Follow:
+, CA_i, 
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 12
+
+#Edges              70610
+#Nodes              48138
+VmrssInGB           1.85386
+AnalysisTime        2198.04
+#CountEdges         162671846
+#Checks             2232115447
+#SumEdges           185936179
+
+---------------------vf----------------------------
+Running orig pocr taint analysis on povray.g
+#Symbol = 9
+:9, a:8, CA_i:7, call_i:6, ret_i:5, A:4, N:3, P:2, S:1, 
+Insert:
+S, P, N, A, ret_i, call_i, CA_i, a, , 
+Follow:
+
+Count:
+S, 
+
+#VariantSymbol = 3
+#Rule = 13
+
