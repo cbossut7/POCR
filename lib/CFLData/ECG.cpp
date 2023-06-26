@@ -4,29 +4,52 @@
 //
 
 #include "CFLData/ECG.h"
+#include "CFLSolver/CFLOpt.h"
 
 using namespace SVF;
 
 
-void ECG::insertForthEdge(NodeID i, NodeID j)
+std::unordered_map<NodeID, NodeBS>& ECG::insertForwardEdge(NodeID i, NodeID j)
 {
+    newEdgeMap.clear();
+
     ECGNode* vi = getNode(i);
     ECGNode* vj = getNode(j);
-    searchBack(vi, vj);
+    searchBackward(vi, vj);
 
-    addEdge(vi, vj, Forth);
+    addEdge(vi, vj);
+
+    return newEdgeMap;
 }
 
 
-void ECG::searchBack(ECGNode* vi, ECGNode* vj)
+std::unordered_map<NodeID, NodeBS>& ECG::insertBackEdge(NodeID i, NodeID j)
+{
+    newEdgeMap.clear();
+
+    /// Set a back edge, backSrc and backDst will change during the following two-way search
+    ECGNode* vi = getNode(i);
+    ECGNode* vj = getNode(j);
+    searchBackwardInCycle(vi, vj);
+
+    addEdge(vi, vj);
+
+    if (CFLOpt::ecgSCC())
+        simplifyCycle(vi);
+
+    return newEdgeMap;
+}
+
+
+void ECG::searchBackward(ECGNode* vi, ECGNode* vj)
 {
     /// When adding a new forth edge vi --> vj, we should remove all the edges vi' --> vj' such that
     /// vi' in pred(vi) and vj' in succ(vj).
     //@{
     std::stack<ECGEdge> edgesToRemove;
-    for (auto succ: vi->successors)
+    for (auto succ : vi->successors)
     {
-        ECGNode* vSucc = succ.first;
+        ECGNode* vSucc = succ;
         if (isReachable(vj->id, vSucc->id) && vj->id != vSucc->id)
             edgesToRemove.push(ECGEdge(vi, vSucc));
     }
@@ -38,114 +61,86 @@ void ECG::searchBack(ECGNode* vi, ECGNode* vj)
     }
     //@}
 
-    searchForth(vi, vj);
+    searchForward(vi, vj);
 
-    for (auto pred: vi->predecessors)
+    for (auto pred : vi->predecessors)
     {
-        ECGNode* vPred = pred.first;
+        ECGNode* vPred = pred;
         if (!isReachable(vPred->id, vj->id))
-            searchBack(vPred, vj);
+            searchBackward(vPred, vj);
     }
 }
 
 
-void ECG::searchForth(ECGNode* vi, ECGNode* vj)
+void ECG::searchForward(ECGNode* vi, ECGNode* vj)
 {
+    checks++;
     setReachable(vi->id, vj->id);
-    for (auto succ: vj->successors)
+    recordNewEdge(vi->id, vj->id);
+
+    for (auto succ : vj->successors)
     {
-        ECGNode* vSucc = succ.first;
+        ECGNode* vSucc = succ;
         if (!isReachable(vi->id, vSucc->id))
-            searchForth(vi, vSucc);
+            searchForward(vi, vSucc);
     }
 }
 
 
-// TODO: already correct, need to handle cycle
-void ECG::insertBackEdge(NodeID i, NodeID j)
+void ECG::searchBackwardInCycle(ECGNode* vi, ECGNode* vj)
 {
-    /// Set a back edge, backSrc and backDst will change during the following two-way search
-    ECGNode* vi = getNode(i);
-    ECGNode* vj = getNode(j);
+    searchForward(vi, vj);
 
-//    _backSrc = vi;
-//    _backDst = vj;
-//    while (!redBackEdges.empty())   // clear redundant back edges
-//        redBackEdges.pop();
-
-//    searchForthInCycle(vj);
-//    searchBackInCycle(vi);
-    searchBackInCycle(vi, vj);
-
-    addEdge(vi, vj, Back);
+    for (auto pred : vi->predecessors)
+    {
+        ECGNode* vPred = pred;
+        if (!isReachable(vPred->id, vj->id))
+            searchBackwardInCycle(vPred, vj);
+    }
 }
 
 
-//void ECG::resetBackEdge(ECGNode* vi, ECGNode* vj)
-//{
-//    removeEdge(_backSrc, _backDst);
-//    addEdge(vi, vj, Back);
-//    _backSrc = vi;
-//    _backDst = vj;
-//}
-
-
-// TODO: simplify cycle on the fly
-//void ECG::searchForthInCycle(ECGNode* vj)
-//{
-//    setReachable(_backSrc->id, vj->id);
-//
-//    std::unordered_map<ECGNode*, ECGEdgeTy> vjSuccs = vj->successors;   // copy successors to traverse
-//    for (auto succ: vjSuccs)
-//    {
-//        ECGNode* vSucc = succ.first;
-//        if (succ.second == Back && isReachable(vj->id, _backSrc->id))
-//        {
-//            removeEdge(vj, vSucc);
-//            if (!isReachable(_backSrc->id, vSucc->id))
-//            {
-//                resetBackEdge(_backSrc, vSucc);
-//                searchForthInCycle(vSucc);
-//            }
-//        }
-//        else if (!isReachable(_backSrc->id, vSucc->id))
-//            searchForthInCycle(vSucc);
-//    }
-//}
-
-
-//void ECG::searchBackInCycle(ECGNode* vi)
-//{
-//    searchForth(vi, _backDst);
-//
-//    std::unordered_map<ECGNode*, ECGEdgeTy> viPreds = vi->predecessors;   // copy predecessors to traverse
-//    for (auto pred: viPreds)
-//    {
-//        ECGNode* vPred = pred.first;
-//        if (pred.second == Back && isReachable(_backDst->id, vi->id))
-//        {
-//            removeEdge(vPred, vi);
-//            if (!isReachable(vPred->id, _backDst->id))
-//            {
-//                resetBackEdge(vPred, _backDst);
-//                searchBackInCycle(vPred);
-//            }
-//        }
-//        else if (!isReachable(vPred->id, _backDst->id))
-//            searchBackInCycle(vPred);
-//    }
-//}
-
-
-void ECG::searchBackInCycle(ECGNode* vi, ECGNode* vj)
+void ECG::simplifyCycle(ECGNode* vi)
 {
-    searchForth(vi, vj);
+    /// reset visited nodes
+    delete visited;
+    visited = new VisitedStack();
 
-    for (auto pred: vi->predecessors)
+    stepInto(vi);
+
+    if (visited->top() != vi)
+        addEdge(visited->top(), vi);
+}
+
+
+void ECG::stepInto(ECGNode* vi)
+{
+    visited->push(vi);
+
+    /// select nodes in cycle
+    std::stack<ECGNode*> succsInCycle;
+    for (auto vj : vi->successors)
+        if (isReachable(vj->id, vi->id))
+            succsInCycle.push(vj);
+
+    /// trim edges
+    while (!succsInCycle.empty())
     {
-        ECGNode* vPred = pred.first;
-        if (!isReachable(vPred->id, vj->id))
-            searchBackInCycle(vPred, vj);
+        ECGNode* vj = succsInCycle.top();
+        succsInCycle.pop();
+
+        if (visited->hasElement(vj))
+            removeEdge(vi, vj);     // remove redundant back edges
+        else
+        {
+            if (visited->top() != vi)
+            {
+                /// reset a branch
+                removeEdge(vi, vj);
+                addEdge(visited->top(), vj);
+            }
+            stepInto(vj);
+        }
     }
 }
 
@@ -153,7 +148,7 @@ void ECG::searchBackInCycle(ECGNode* vi, ECGNode* vj)
 u32_t ECG::countReachablePairs()
 {
     u32_t retVal = 0;
-    for (auto& iter: succMap)
+    for (auto& iter : reachableMap)
     {
         retVal += iter.second.count();
     }
@@ -164,7 +159,7 @@ u32_t ECG::countReachablePairs()
 void ECG::countECGEdges()
 {
     u32_t numOfEdges = 0;
-    for (auto it: idToNodeMap)
+    for (auto it : idToNodeMap)
     {
         numOfEdges += it.second->successors.size();
     }

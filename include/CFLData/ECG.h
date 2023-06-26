@@ -19,56 +19,72 @@ public:
         Back        // backward edges for tracking cycles
     };
 
-    /// calculators
-    u32_t checks;
-
     struct ECGNode
     {
         NodeID id;
-        std::unordered_map<ECGNode*, ECGEdgeTy> successors;
-        std::unordered_map<ECGNode*, ECGEdgeTy> predecessors;
+        std::unordered_set<ECGNode*> successors;
+        std::unordered_set<ECGNode*> predecessors;
 
         ECGNode(NodeID i) : id(i)
         {}
 
         inline bool operator==(const ECGNode& rhs) const
-        {
-            return id == rhs.id;
-        }
+        { return id == rhs.id; }
 
         inline bool operator<(const ECGNode& rhs) const
-        {
-            return id < rhs.id;
-        }
+        { return id < rhs.id; }
     };
 
     typedef std::pair<ECGNode*, ECGNode*> ECGEdge;   // first: src, second: dst
 
+    struct VisitedStack
+    {
+        std::stack<ECGNode*> _stack;
+        std::unordered_set<ECGNode*> _set;
+
+        VisitedStack() = default;
+
+        inline ECGNode* top()
+        { return _stack.top(); }
+
+        inline void push(ECGNode* n)
+        {
+            _set.insert(n);
+            _stack.push(n);
+        }
+
+        inline void pop()
+        {
+            _set.erase(_stack.top());
+            _stack.pop();
+        }
+
+        inline bool hasElement(ECGNode* n)
+        { return _set.find(n) != _set.end(); }
+    };
+
+    /// calculators
+    u32_t checks;
+
 protected:
     std::unordered_map<NodeID, NodeID> nodeToRepMap;
     std::unordered_map<NodeID, ECGNode*> idToNodeMap;
-    std::unordered_map<NodeID, NodeBS> succMap;
+    std::unordered_map<NodeID, NodeBS> reachableMap;
+    std::unordered_map<NodeID, NodeBS> newEdgeMap;
 
-    ECGNode* _backSrc;
-    ECGNode* _backDst;
-    std::stack<ECGEdge> redBackEdges;
+    VisitedStack* visited;
 
 public:
     /// constructor
-    ECG() : _backSrc(nullptr),
-            _backDst(nullptr),
-            checks(0)
+    ECG() : checks(0), visited(nullptr)
     {};
 
     /// node methods
     //@{
     inline void addNode(NodeID id)
     {
-//        if (idToNodeMap.find(id) != idToNodeMap.end())
-//            return false;
         idToNodeMap[id] = new ECGNode(id);
         setReachable(id, id);
-//        return true;
     }
 
     inline NodeID repNodeID(NodeID id) const
@@ -78,25 +94,13 @@ public:
             return id;
         return it->second;
     }
-
-    inline ECGNode* backSrc() const
-    { return _backSrc; }
-
-    inline ECGNode* backDst() const
-    { return _backDst; }
-
-    inline void resetBackSrc(ECGNode* v)
-    { _backSrc = v; }
-
-    inline void resetBackDst(ECGNode* v)
-    { _backDst = v; }
     //@}
 
     /// edge methods
     //@{
     inline ECGNode* getNode(NodeID id)
     {
-        auto it = idToNodeMap.find(repNodeID(id));
+        auto it = idToNodeMap.find(id);
         assert(it != idToNodeMap.end() && "Node not found!");
         return it->second;
     }
@@ -107,27 +111,27 @@ public:
         return srcNode->successors.find(getNode(dst)) != srcNode->successors.end();
     }
 
-    void addEdge(NodeID src, NodeID dst, ECGEdgeTy ty)
+    inline void addEdge(NodeID src, NodeID dst)
     {
         ECGNode* srcNode = getNode(src);
         ECGNode* dstNode = getNode(dst);
-        addEdge(srcNode, dstNode, ty);
+        addEdge(srcNode, dstNode);
     }
 
-    inline static void addEdge(ECGNode* src, ECGNode* dst, ECGEdgeTy ty)
+    inline static void addEdge(ECGNode* src, ECGNode* dst)
     {
-        src->successors[dst] = ty;
-        dst->predecessors[src] = ty;
+        src->successors.insert(dst);
+        dst->predecessors.insert(src);
     }
 
-    void removeEdge(NodeID src, NodeID dst)
+    inline void removeEdge(NodeID src, NodeID dst)
     {
         ECGNode* vSrc = getNode(src);
         ECGNode* vDst = getNode(dst);
         removeEdge(vSrc, vDst);
     }
 
-    static void removeEdge(ECGEdge edge)
+    inline static void removeEdge(ECGEdge edge)
     {
         ECGNode* vSrc = edge.first;
         ECGNode* vDst = edge.second;
@@ -144,29 +148,118 @@ public:
     /// adjacency list methods
     //@{
     inline bool isReachable(NodeID n, NodeID tgt)
-    { return succMap[n].test(tgt); }
+    { return reachableMap[n].test(tgt); }
 
     inline void setReachable(NodeID n, NodeID tgt)
-    { succMap[n].set(tgt); }
+    { reachableMap[n].set(tgt); }
+
+    inline void recordNewEdge(NodeID n, NodeID tgt)
+    { newEdgeMap[n].set(tgt); }
     //@}
 
     /// graph methods
-    void insertForthEdge(NodeID i, NodeID j);
-    void insertBackEdge(NodeID i, NodeID j);
-    void searchForth(ECGNode* vi, ECGNode* vj);
-    void searchBack(ECGNode* vi, ECGNode* vj);
-
-//    void searchForthInCycle(ECGNode* vi, ECGNode* vj);  // no use vi
-    void searchBackInCycle(ECGNode* vi, ECGNode* vj);   // no use vj
-
-//    void searchForthInCycle(ECGNode* vj);  // no use vi
-//    void searchBackInCycle(ECGNode* vi);   // no use vj
-//    void resetBackEdge(ECGNode* vi, ECGNode* vj);
+    std::unordered_map<NodeID, NodeBS>& insertForwardEdge(NodeID i, NodeID j);
+    std::unordered_map<NodeID, NodeBS>& insertBackEdge(NodeID i, NodeID j);
+    void searchForward(ECGNode* vi, ECGNode* vj);
+    void searchBackward(ECGNode* vi, ECGNode* vj);
+    void searchBackwardInCycle(ECGNode* vi, ECGNode* vj);   // no use vj
+    void simplifyCycle(ECGNode* vi);
+    void stepInto(ECGNode* vi);
 
     /// calculator
     u32_t countReachablePairs();
     void countECGEdges();
 };
+
+
+/*!
+ * Bit set-based ECG
+ */
+class BSECG
+{
+public:
+    typedef std::pair<NodeID, NodeID> ECGEdge;
+
+protected:
+    std::unordered_map<NodeID, NodeBS> predMap;
+    std::unordered_map<NodeID, NodeBS> succMap;
+    std::unordered_map<NodeID, NodeBS> reachableMap;
+    const NodeBS emptyBS;
+
+public:
+    BSECG() = default;
+
+    /// node methods
+    //@{
+    inline void addNode(NodeID id)
+    {
+        setReachable(id, id);
+    }
+
+    inline const NodeBS& getSuccs(NodeID id) const
+    {
+        auto it = succMap.find(id);
+        if (it == succMap.end())
+            return emptyBS;
+        return it->second;
+    }
+
+    inline const NodeBS& getPreds(NodeID id) const
+    {
+        auto it = predMap.find(id);
+        if (it == predMap.end())
+            return emptyBS;
+        return it->second;
+    }
+    //@}
+
+    /// edge methods
+    //@{
+    inline bool hasEdge(NodeID src, NodeID dst)
+    {
+        if (succMap[src].test(dst))
+            return true;
+        if (succMap[src].test(dst))
+            return true;
+        return false;
+    }
+
+    inline void addEdge(NodeID src, NodeID dst)
+    {
+        succMap[src].set(dst);
+        predMap[dst].set(src);
+    }
+
+    inline void removeEdge(ECGEdge edge)
+    { removeEdge(edge.first, edge.second); }
+
+    inline void removeEdge(NodeID src, NodeID dst)
+    {
+        succMap[src].reset(dst);
+        succMap[src].reset(dst);
+        predMap[dst].reset(src);
+        predMap[dst].reset(src);
+    }
+    //@}
+
+    /// Reachability info methods
+    //@{
+    inline bool isReachable(NodeID n, NodeID tgt)
+    { return reachableMap[n].test(tgt); }
+
+    inline void setReachable(NodeID n, NodeID tgt)
+    { reachableMap[n].set(tgt); }
+    //@}
+
+    /// graph methods
+    void insertForthEdge(NodeID i, NodeID j);
+    void insertBackEdge(NodeID i, NodeID j);
+    void searchForth(NodeID i, NodeID j);
+    void searchBack(NodeID i, NodeID j);
+
+    void searchBackInCycle(NodeID i, NodeID j);   // no use vj
+};
+
 
 }
 

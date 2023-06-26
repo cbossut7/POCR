@@ -123,6 +123,8 @@ public:
     void traversePtree(char lbl, NodeID px, TreeNode* py, NodeID sx, TreeNode* sy);
     void traverseStree(char lbl, NodeID px, TreeNode* py, NodeID sx, TreeNode* sy);
     bool updateTrEdge(char lbl, NodeID px, TreeNode* py, NodeID sx, TreeNode* sy);
+
+    void countSumEdges() override;
 };
 
 
@@ -172,13 +174,45 @@ public:
     static bool isPrimary(CFLItem& item)
     { return item.isPrimary(); }
 
+    void countSumEdges() override;
+};
+
+
+/*!
+ * BSECG-based focr
+ */
+class BSFocrCFL : public StdCFL
+{
+public:
+    typedef BSECG::ECGEdge ECGEdge;
+    typedef Map<CFGSymbTy, BSECG*> ECGMap;
+
+protected:
+    ECGMap ecgs;
+    CFLData followData;
+
+public:
+    BSFocrCFL(std::string& _grammarName, std::string& _graphName) : StdCFL(_grammarName, _graphName)
+    {}
+
+    /// UCFL methods
+    void initSolver() override;
+    void procPrimaryItem(CFLItem item);
+    bool pushIntoWorklist(NodeID src, NodeID dst, Label ty, bool isPrimary = true) override;
+    void processCFLItem(CFLItem item) override;
+    void checkPreds(Label newLbl, NodeID src, NodeID dst, BSECG* g);
+    void checkSuccs(Label newLbl, NodeID src, NodeID dst, BSECG* g);
+
+    static bool isPrimary(CFLItem& item)
+    { return item.isPrimary(); }
+
     /// Overridden ECG methods
     void insertForthEdge(NodeID i, NodeID j, CFGSymbTy symb);
     void insertBackEdge(NodeID i, NodeID j, CFGSymbTy symb);
-    void searchForth(ECGNode* vi, ECGNode* vj, CFGSymbTy symb);
-    void searchBack(ECGNode* vi, ECGNode* vj, CFGSymbTy symb);
+    void searchForth(NodeID i, NodeID j, CFGSymbTy symb);
+    void searchBack(NodeID i, NodeID j, CFGSymbTy symb);
     void updateTrEdge(NodeID i, NodeID j, CFGSymbTy symb);
-    void searchBackInCycle(ECGNode* vi, ECGNode* vj, CFGSymbTy symb);
+    void searchBackInCycle(NodeID i, NodeID j, CFGSymbTy symb);
 };
 
 }

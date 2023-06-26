@@ -18,10 +18,10 @@ const Option<bool> CFLOpt::solveCFL(
         true
 );
 
-const Option<bool> CFLOpt::writeGraph(
+const Option<std::string> CFLOpt::outGraphFName(
         "write-graph",
         "Write the graph into file",
-        false
+        ""
 );
 
 const Option<bool> CFLOpt::graphStat(
@@ -48,6 +48,12 @@ const Option<bool> CFLOpt::interDyck(
         false   // slower than expected
 );
 
+const Option<bool> CFLOpt::graphSimp(
+        "simplify-graph",
+        "Enable graph simplification",
+        false   // slower than expected
+);
+
 Option<bool> CFLOpt::ucfl(
         "ucfl",
         "Enable uni-directional CFL-reachability summarization scheme",
@@ -58,6 +64,12 @@ const Option<std::string> CFLOpt::sPairsFName(
         "write-spairs",
         "Write S pairs into specified file",
         ""
+);
+
+const Option<bool> CFLOpt::ecgSCC(
+        "ecgscc",
+        "Simplify cycles in ECG",
+        false
 );
 
 } // namespace SVF.
